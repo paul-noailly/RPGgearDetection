@@ -40,4 +40,10 @@ Then run OCR model and decoder algorithm on pictures
 python main_decoder.py
 ```
 
+## Contribute
+
+```ssh
+git add . && git commit -m "name commit" && git push -u origin master
+```
+
 

@@ -1,0 +1,13 @@
+__pycache__/
+# Jupyter Notebook
+**/.ipynb_checkpoints
+*.ipynb
+# logs
+**/logs
+# vs code
+*.code-workspace
+# sensitive informations
+service-account-file.json
+# data
+*.png
+*.json

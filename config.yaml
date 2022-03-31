@@ -1,0 +1,5 @@
+# Screener
+folder_img: "img"
+sec_between_screenshot: 0.3
+# Decoder
+folder_json1: "gears1"
