@@ -1,5 +1,6 @@
 # Screener
-folder_img: "img"
+folder_img_left: "img/left"
+folder_img_substats: "img/substats"
 sec_between_screenshot: 0.3
 # Decoder
 folder_json1: "gears1"
