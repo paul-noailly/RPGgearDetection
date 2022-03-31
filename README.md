@@ -28,13 +28,21 @@ The input required from the user come down to:
 
 ## How to use
 
-First scrape the gears pictures
+**Setup a GCP account:**
+- use a google account and go on [google cloud plateform](https://console.cloud.google.com/)
+- activate free try
+- create a new project
+  - activate google vision app [here](https://console.cloud.google.com/apis/library/vision.googleapis.com)
+  - create serve account and extract key as json file [here](https://console.cloud.google.com/iam-admin/serviceaccounts)
+  - rename this file `service-account-file.json` and put it in the root of the repo
+
+**First scrape the gears pictures**
 
 ```ssh
 python main_scraper.py
 ```
 
-Then run OCR model and decoder algorithm on pictures
+**Then run OCR model and decoder algorithm on pictures**
 
 ```ssh
 python main_decoder.py
