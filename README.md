@@ -48,10 +48,16 @@ python main_scraper.py
 python main_decoder.py
 ```
 
+**Correct eventual missmatches of OCR model by hand**
+
+```ssh
+python main_correcter.py
+```
+
 ## Contribute
 
 ```ssh
-git add . && git commit -m "name commit" && git push -u origin master
+git add . && git commit -m "name_commit" && git push -u origin master
 ```
 
 
