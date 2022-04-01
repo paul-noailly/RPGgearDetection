@@ -10,19 +10,19 @@ def log(msg):
     
 
 config = yaml.safe_load(open("config.yaml","r"))
-folder_img_left = config['folder_img_left']
-folder_img_substats = config['folder_img_substats']
+folder_left = config['folder_left']
+folder_substats = config['folder_substats']
 sec_between_screenshot = config['sec_between_screenshot']
 
 # make dirs
-for folder in [folder_img_left, folder_img_substats]:
+for folder in [folder_left, folder_substats]:
     try:
         os.makedirs(folder)
     except:
         pass
 
 if __name__ == '__main__':
-    bot = Screener(folder_img_left, folder_img_substats)
+    bot = Screener(folder_left, folder_substats)
     log('Calibrate screen left')
     bot.run_calibration_left()    
     time.sleep(1)
