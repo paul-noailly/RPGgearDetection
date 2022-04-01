@@ -5,7 +5,7 @@ import os, yaml, shutil, json
 from PIL import Image   
 
 def show_img(path):                                                                             
-    img = Image.open('test.png')
+    img = Image.open(path)
     img.show()
 
 
@@ -18,6 +18,8 @@ folder_result = config['folder_result']
 
 gear_paths = [f'{folder_result}/{filename}' for filename in os.listdir(folder_result) if '.json' in filename]
 
+print(len([gear_path for gear_path in gear_paths if not json.load(open(gear_path, 'r'))['meta']['completed_substats']]))
+
 for gear_path in gear_paths:
     
     with open(gear_path, 'r') as f:
@@ -27,8 +29,14 @@ for gear_path in gear_paths:
     if not dict_gear['meta']['completed_substats']:
         print('...')
         log(f'Correcting {gear_path}')
-        allow_correction = input('Correct this gear ? y/n')
+        allow_correction = 'y' #input('Correct this gear ? y/n')
         if allow_correction.lower() == 'y':
             show_img(f"{folder_substats}/{dict_gear['meta']['index_img']}.png")
+            
+            substats_amount = input('Select stats separated by a "-"')
+            
+            
         else:
             pass
+        
+        
