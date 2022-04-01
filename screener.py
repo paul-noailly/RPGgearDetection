@@ -11,10 +11,10 @@ class Screener():
         self.folder_img_substats = folder_img_substats
         
     def delete_screenshot_if_redonant(self):
-        if self.index >= 2:
+        if self.index >= 1:
             is_identical_left = (Image.open(f'{self.folder_img_left}/{self.index}.png').__array__()==Image.open(f'{self.folder_img_left}/{self.index-1}.png').__array__()).all()
             is_identical_substats = (Image.open(f'{self.folder_img_substats}/{self.index}.png').__array__()==Image.open(f'{self.folder_img_substats}/{self.index-1}.png').__array__()).all()
-            if is_identical_left and is_identical_substats:
+            if is_identical_left or is_identical_substats:
                 os.remove(f'{self.folder_img_left}/{self.index}.png')
                 os.remove(f'{self.folder_img_substats}/{self.index}.png')
                 print("redondant screenshot. DELETED")

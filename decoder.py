@@ -1,8 +1,12 @@
-import json, datetime, yaml
+from gear import Gear, Substat
+import json, unidecode
 
-def log(msg):
-    print(f"[{datetime.datetime.now()}] - {msg}")
-    
+class InvalidGearException(Exception):
+    pass
+
+class MissmatchSubstatsException(Exception):
+    pass
+
 class OCR():
     def __init__(self) -> None:
         pass
@@ -38,298 +42,295 @@ class OCR():
             
         return self.texts
 
-class Decoder():
-    _TYPES = ['arme', 'buste', 'tête', 'pieds', 'mains', 'cou']
-    _STATS = ['Attaque', 'Défense', 'PV', 'Vitesse', 'Concentration', 
-                 'Résistance', 'Taux', 'Précision', 'Dégâts', 'Agilité']
-    _SETS = ['Guerrier', 
-             'Fureur', 
-             'Avant-Garde', 
-             'Renaissance', 
-             'Malédiction', 
-             'Assassin', 
-             'Divin',
-             'Terre', 
-             'Raid', 
-             'Aigle', 
-             'Foi', 
-             'Draconique', 
-             "l'Avarice", 
-             'Garde', 
-             'Invincibilité']
-    def __init__(self, folder_json):
-        self.folder_json = folder_json
-        
-    def get_coords(self, text):
-        coords = []
-        for i in range(0,4):
-            coords.append((text.bounding_poly.vertices[i].x, text.bounding_poly.vertices[i].y))
-        center = ((max(coords)[0] + min(coords)[0])/2, (max(coords)[1] + min(coords)[1])/2)
-        limit_coords = {
-            'min_x':min(coords)[0],
-            'min_y':min(coords)[1],
-            'max_x':max(coords)[0],
-            'max_y':max(coords)[1]
-            }
-        return coords, center, limit_coords
-    
-    def description_is_a_type(self, word_given):
-        for word_to_guess in Decoder._TYPES:
-            letters_in_common = set()
-            for letter in word_given:
-                if letter in word_to_guess:
-                    letters_in_common.add(letter)
-            if len(word_to_guess) == len(word_given) and len(letters_in_common) >= 0.65*len(word_to_guess):
-                return True, word_to_guess
-        return False, None
-    
-    def word_is_similar(self, word_given, list_words, debug=False):
-        word_given = word_given.lower()
-        # if debug:
-        #     print('Word similar for ',word_given)
-        for word_to_guess in [word.lower() for word in list_words]:
-            if word_to_guess == word_given:
-                return True, word_to_guess
-            letters_in_common = set()
-            for letter in word_given:
-                if letter in word_to_guess:
-                    letters_in_common.add(letter)
-            # if debug:
-            #     print('      ', letters_in_common, word_to_guess)
-            if len(word_to_guess) == len(word_given) and len(letters_in_common) >= 0.65*len(word_to_guess):
-                return True, word_to_guess
-        return False, None
-    
-    def find_level(self):
-        for i, text in enumerate(self.texts):
-            if i >= 1:
-                if "+" in text.description:
-                    break
-            if i >= 20:
-                raise Exception('ERROR find_level not found')
-        coords, center, limit_coords = self.get_coords(text)
-        self.localisations["level"] = {
-                "found":True,
-                "coords_limit": {"x":(min(coords)[0],max(coords)[0]), 
-                                 "y":(min(coords)[1],max(coords)[1])},
-                "text_raw": text.description,
-                "index_found": i,
-                "value": text.description[1:],
-            }
-        print(f'found level: {text.description[1:]}')
-        
-    def find_type(self):
-        for i, text in enumerate(self.texts):
-            if i >= self.localisations["level"]['index_found']:
-                coords, center, limit_coords = self.get_coords(text)
-                if center[1] > self.localisations["level"]['coords_limit']['y'][1]:
-                    word_is_similar, similar_word = self.word_is_similar(text.description, self._TYPES)
-                    if word_is_similar:
-                        break
-            if i >= len(self.texts) - 1:
-                raise Exception('ERROR find_level not found')
-        self.localisations["type"] = {
-                "found":True,
-                "coords_limit": {"x":(min(coords)[0],max(coords)[0]), 
-                                 "y":(min(coords)[1],max(coords)[1])},
-                "text_raw": text.description,
-                "index_found": i,
-                "value": similar_word,
-            }
-        print(f'found type: {similar_word}')
-        
-    def find_main_stat(self):
-        for i, text in enumerate(self.texts):
-            if i >= self.localisations["type"]['index_found']:
-                coords, center, limit_coords = self.get_coords(text)
-                if center[1] > self.localisations["type"]['coords_limit']['y'][1]:
-                    # print('test main stat', text.description, self._STATS)
-                    word_is_similar, similar_word = self.word_is_similar(text.description, self._STATS)
-                    if word_is_similar:
-                        break
-            if i >= len(self.texts) - 1:
-                raise Exception('ERROR find_level not found')
-        self.localisations["main_stat"] = {
-                "found":True,
-                "coords_limit": {"x":(min(coords)[0],max(coords)[0]), 
-                                 "y":(min(coords)[1],max(coords)[1])},
-                "text_raw": text.description,
-                "index_found": i,
-                "value": similar_word,
-            }
-        print(f'found main_stat: {similar_word}')
-        
-    def locate_stat_secondaires(self):
-        for i, text in enumerate(self.texts):
-            if i >= self.localisations["main_stat"]['index_found']:
-                coords, center, limit_coords = self.get_coords(text)
-                if center[1] > self.localisations["main_stat"]['coords_limit']['y'][1]:
-                    # print('test main stat', text.description, self._STATS)
-                    if text.description == 'Stats':
-                        break
-            if i >= len(self.texts) - 1:
-                raise Exception('ERROR find_level not found')
-        self.localisations["stat_secondaires_location"] = {
-                "found":True,
-                "coords_limit": {"x":(min(coords)[0],max(coords)[0]), 
-                                 "y":(min(coords)[1],max(coords)[1])},
-                "index_found": i,
-            }
-        print(f'found stat secondaire label at index: {i}')
-        
-    def find_set(self):
-        found_set = False
-        for i, text in enumerate(self.texts):
-            if i >= self.localisations["stat_secondaires_location"]['index_found']:
-                coords, center, limit_coords = self.get_coords(text)
-                if center[1] > self.localisations["stat_secondaires_location"]['coords_limit']['y'][1]:
-                    # print('test main stat', text.description, self._STATS)
-                    if text.description == 'Set':
-                        found_set = True
-                        max_y_set = limit_coords['max_y']
-                        min_y_set = limit_coords['min_y']
-                    if found_set and center[1]<max_y_set and center[1]>min_y_set:
-                        # print('testing similar', text.description, self._SETS)
-                        word_is_similar, similar_word = self.word_is_similar(text.description, self._SETS)
-                        if word_is_similar:
-                            # print('FOUND IT')
-                            break
-            if i >= len(self.texts) - 1:
-                for text in [text for text in self.texts][self.localisations["stat_secondaires_location"]['index_found']:]:
-                    print(text.description)
-                raise Exception('ERROR set not found')
-
-            
-        self.localisations["set"] = {
-                "found":True,
-                "coords_limit": {"x":(min(coords)[0],max(coords)[0]), 
-                                 "y":(min(coords)[1],max(coords)[1])},
-                "text_raw": text.description,
-                "index_found": i,
-                "value": similar_word,
-            }
-        print(f'found set: {similar_word}')
-        
-
-
-    def find_substats(self):
-        
-        i_min = self.localisations["stat_secondaires_location"]['index_found']
-        coord_stat_sec = self.localisations["stat_secondaires_location"]['coords_limit']
-
-        i_max = self.localisations["set"]['index_found']
-        coord_set = self.localisations["set"]['coords_limit']
-
-        def is_str_of_float(v):
-            try:
-                float(v.replace("%",''))
-                return True
-            except:
-                return False
-
-        substats = {}
-        substats_values_coordy = {}
-        
-        
-        list_text = [text for text in self.texts]
-        for i, text in enumerate(list_text):
-            print(i, text.description)
-        print()
-        
-        list_text = [text for text in self.texts][i_min+2:i_max-1]
-        for i, text in enumerate(list_text):
-            # print(i, text.description)
-            # print()
-            # print(text.description, self.get_coords(text)[2])
-            coords, center, limit_coords = self.get_coords(text)
-            word_is_similar, similar_word = self.word_is_similar(text.description, Decoder._STATS)
-            if word_is_similar:
-                # print('Found a stat: ', similar_word, limit_coords)
-                substats[len(substats)] = {
-                    "stat": similar_word,
-                    "coords_limit": {"x":(min(coords)[0],max(coords)[0]), 
-                                     "y":(min(coords)[1],max(coords)[1])},
-                    "text_raw": text.description,
-                    "index_found": i,
-                    "nbs_procs": ""
-                }
-                if similar_word in ['taux','dégât'] and list_text[i+3].description[0] == '[':
-                    substats[len(substats)-1]["nbs_procs"] = list_text[i+3].description
-                    substats[len(substats)-1]["i_proc"] = i+3
-                elif list_text[i+1].description[0] == '[':
-                    substats[len(substats)-1]["nbs_procs"] = list_text[i+1].description
-                    substats[len(substats)-1]["i_proc"] = i+1
-            if is_str_of_float(text.description):
-                substats_values_coordy[text.description] = center[1]
-                print("found a float",text.description)
-                # for sub,sub_dic in substats.items():
-                #     print('   testing coord',center,sub_dic['coords_limit']['y'],sub_dic['stat'])
-                #     if center[1] < sub_dic['coords_limit']['y'][1] and center[1] > sub_dic['coords_limit']['y'][0]:
-                #         print("   float",text.description,"is within range of ",sub_dic['stat'])
-                #         substats[sub]['value'] = text.description
-        if len(substats) == len(substats_values_coordy):
-            for index_sub,val in enumerate(sorted(substats_values_coordy.items(), key=lambda item: item[1])):
-                # print('added stat',substats[index_sub]['stat'],' +',val[0])
-                substats[index_sub]['value'] = val[0]
-        else:
-            print('ERROR missmatch length between substats and substas_values')
-            self.localisations['completed'] = {
-                    "is_valid": False,
-                    "reason": "missmatch length between substats and substas_values",
-                }
-                        
-        print(f'found {len(substats)} substats')
-        self.localisations['substats'] = substats
-        
-        
-    def decode(self, path):
-        
-        filename = path.split('/')[-1]
-        log(f"Decoding image {filename}")
-        
-        log(f"Exracting full text with OCR {filename}")
-        self.texts = OCR().detect_text(path)
-        
-        self.localisations = {
-            "completed": {
-                "is_valid": True,
-                "reason": "",
-            },
-            "level":{
-                "found":False,
-            },
-            "type":{
-                "found":False,
-            },
-            "main_stat":{
-                "found":False,
-            },
-            "stat_secondaires_location":{
-                "found":False,
-            },
-            "set":{
-                "found":False,
-            },
-            "substats":{
-                "found":False,
-            },
+def get_coords(bounding_poly):
+    coords = []
+    for i in range(0,4):
+        coords.append((bounding_poly.vertices[i].x, bounding_poly.vertices[i].y))
+    center = ((max(coords)[0] + min(coords)[0])/2, (max(coords)[1] + min(coords)[1])/2)
+    limit_coords = {
+        'min_x':min(coords)[0],
+        'min_y':min(coords)[1],
+        'max_x':max(coords)[0],
+        'max_y':max(coords)[1]
         }
+    return center, limit_coords
+
+def match_word(target, words_to_check):
+    for similar_word in words_to_check:
+        # print('comparing',target,similar_word)
+        # check excact same
+        if target.lower() == similar_word.lower():
+            return True, similar_word
+    return False, None
+
+
+def is_str_of_float(target):
+    try:
+        float(target.replace('%',''))
+        return True
+    except:
+        return False
+
+
+class Decoder():
+    _TYPES = [
+        "Arme",
+        "Tête",
+        "Buste",
+        "Pieds",
+        "Mains",
+        "Cou"
+    ]
+    _STATS = [
+        "Attaque",
+        "Défense",
+        "PV",
+        "Taux",
+        "Dégâts",
+        "Vitesse",
+        "Résistance",
+        "Concentration",
+        "Agilité",
+        "Précision",
+    ]
+    _SETS = [
+        'Guerrier', 
+        'Fureur', 
+        'Avant-Garde', 
+        'Renaissance', 
+        'Malédiction', 
+        'Assassin', 
+        'Divin',
+        'Terre', 
+        'Raid', 
+        'Aigle', 
+        'Foi', 
+        'Draconique', 
+        "l'Avarice", 
+        'Garde', 
+        'Invincibilité'
+    ]
+    _SUBS_NAME = "Stats"
+    def __init__(self, folder_left, folder_substats):
+        self.folder_left, self.folder_substats = folder_left, folder_substats
+
+    def get_substats_amount(self, texts_substats):
+        return [text.description for text in texts_substats][1:]
+
+    def decode_level(self, texts_left):
+        for i,text in enumerate(texts_left):
+            if i == 1 and '+' in text.description:
+                center, limit_coords = get_coords(text.bounding_poly)
+                self.level = {
+                    "raw": text.description,
+                    "coords_center": center,
+                    "coords_limit": limit_coords,
+                    "index":i,
+                    "value":int(text.description[1:])
+                }
+                return True
+        raise InvalidGearException('Error - [level] not found')
+
+    def decode_type(self, texts_left):
+        for i,text in enumerate(texts_left):
+            if i > self.level['index']:
+                center, limit_coords = get_coords(text.bounding_poly)
+                if center[1] > self.level['coords_center'][1]:
+                    is_similar_word, similar_word = match_word(text.description, Decoder._TYPES)
+                    if is_similar_word:
+                        self.type = {
+                            "raw": text.description,
+                            "coords_center": center,
+                            "coords_limit": limit_coords,
+                            "index":i,
+                            "value":similar_word
+                        }
+                        return True
+        raise InvalidGearException('Error - [type] not found')
+    
+    def decode_mainStat(self, texts_left):
+        for i,text in enumerate(texts_left):
+            if i > self.type['index']:
+                center, limit_coords = get_coords(text.bounding_poly)
+                if center[1] > self.type['coords_center'][1]:
+                    is_similar_word, similar_word = match_word(text.description, Decoder._STATS)
+                    if is_similar_word:
+                        self.mainStat = {
+                            "raw": text.description,
+                            "coords_center": center,
+                            "coords_limit": limit_coords,
+                            "index":i,
+                            "value":similar_word
+                        }
+                        return True
+        raise InvalidGearException('Error - [mainStat] not found')
+    
+    def decode_subStart(self, texts_left):
+        for i,text in enumerate(texts_left):
+            if i > self.mainStat['index']:
+                center, limit_coords = get_coords(text.bounding_poly)
+                if center[1] > self.mainStat['coords_center'][1]:
+                    if text.description == Decoder._SUBS_NAME: # Stats
+                        self.subStart = {
+                            "coords_center": center,
+                            "coords_limit": limit_coords,
+                            "index":i,
+                        }
+                        return True
+        raise InvalidGearException('Error - [subStart] not found')
+        
+    def decode_mainStatValue(self, texts_left):
+        for i,text in enumerate(texts_left):
+            if i > self.mainStat['index'] and i < self.subStart['index']:
+                center, limit_coords = get_coords(text.bounding_poly)
+                if center[1] > self.mainStat['coords_center'][1] and center[1] < self.subStart['coords_center'][1]:
+                    if is_str_of_float(text.description) and text.description != "0":
+                        self.mainStatValue = {
+                            "raw": text.description,
+                            "coords_center": center,
+                            "coords_limit": limit_coords,
+                            "index":i,
+                            "value":text.description
+                        }
+                        return True
+        raise InvalidGearException('Error - [subStart] not found')
+    
+    def decode_setPos(self, texts_left):
+        for i,text in enumerate(texts_left):
+            if i > self.subStart['index']:
+                center, limit_coords = get_coords(text.bounding_poly)
+                if center[1] > self.subStart['coords_center'][1]:
+                    if text.description == "Set":
+                        self.setPos = {
+                            "coords_center": center,
+                            "coords_limit": limit_coords,
+                            "index":i,
+                        }
+                        return True
+        raise InvalidGearException('Error - [setPos] not found')
+    
+    def decode_setValue(self, texts_left):
+        for i,text in enumerate(texts_left):
+            if i > self.setPos['index']:
+                center, limit_coords = get_coords(text.bounding_poly)
+                if center[1] >= self.setPos['coords_limit']['min_y'] and center[1] <= self.setPos['coords_limit']['max_y']:
+                    is_similar_word, similar_word = match_word(text.description, Decoder._SETS)
+                    if is_similar_word:
+                        self.setValue = {
+                            "raw": text.description,
+                            "coords_center": center,
+                            "coords_limit": limit_coords,
+                            "index":i,
+                            "value":similar_word
+                        }
+                        return True
+        raise InvalidGearException('Error - [setValue] not found')
+    
+    
+    def decode_substatsName(self, texts_left):
+        self.substats = {}
+        for i,text in enumerate(texts_left):
+            if i > self.subStart['index'] and i < self.setPos['index']:
+                center, limit_coords = get_coords(text.bounding_poly)
+                if center[1] >= self.subStart['coords_center'][1] and center[1] <= self.setPos['coords_center'][1]:
+                    is_similar_word, similar_word = match_word(text.description, Decoder._STATS)
+                    if is_similar_word:
+                        self.substats[len(self.substats)] = {
+                            "name": {
+                                "raw": text.description,
+                                "coords_center": center,
+                                "coords_limit": limit_coords,
+                                "index":i,
+                                "value":similar_word
+                            }
+                        }
+                    if len(self.substats) >= 4:
+                        return True
+        return True
+        # raise InvalidGearException('Error - [substatsName] not found')
+    
+    def decode_substatsProcs(self, texts_left):
+        for i,text in enumerate(texts_left):
+            if i > self.subStart['index'] and i < self.setPos['index']:
+                center, limit_coords = get_coords(text.bounding_poly)
+                if center[1] >= self.subStart['coords_center'][1] and center[1] <= self.setPos['coords_center'][1]:
+                    if '[' in text.description and ']' in text.description:
+                        for substat_id, substat_dic in self.substats.items():
+                            # print(text.description, center[1], substat_dic['name']['value'], substat_dic['name']['coords_limit']['min_y'], substat_dic['name']['coords_limit']['max_y'])
+                            if center[1] >= substat_dic['name']['coords_limit']['min_y'] and center[1] <= substat_dic['name']['coords_limit']['max_y']:
+                                self.substats[substat_id]['procs'] = {
+                                    "raw": text.description,
+                                    "coords_center": center,
+                                    "coords_limit": limit_coords,
+                                    "index":i,
+                                    "value":int(text.description.replace('[','').replace(']','').replace('+','')) + 1
+                                }
+                                break
+    
+    
+    def decode_substatsAmount(self, texts_substats):
+        substats_amount = self.get_substats_amount(texts_substats)
+        if len(substats_amount) != len(self.substats):
+            self.completed_substats = False
+            print('Error - in [substatsAmount] missmatch with length substats')
+        else:
+            for substat_id, substat_dic in self.substats.items():
+                self.completed_substats = True
+                self.substats[substat_id]['amount'] = {
+                                        "raw": substats_amount[substat_id],
+                                        "value": substats_amount[substat_id]
+                                    } 
+        
+    def decode(self, index):
+        path_left = f"{self.folder_left}/{index}.png"
+        path_substats = f"{self.folder_substats}/{index}.png"
+
+        ocr = OCR()
+        texts_substats = ocr.detect_text(path_substats)
+        texts_left = ocr.detect_text(path_left)
         
         
+        self.decode_level(texts_left)
+        self.get_substats_amount(texts_substats)
+        self.decode_type(texts_left)
+        self.decode_mainStat(texts_left)
+        self.decode_subStart(texts_left)
+        self.decode_mainStatValue(texts_left)
+        self.decode_setPos(texts_left)
+        self.decode_setValue(texts_left)
+        self.decode_substatsName(texts_left)
+        self.decode_substatsProcs(texts_left)
+        self.decode_substatsAmount(texts_substats)
         
-        print('starting gear information mining...')
-        self.find_level()
-        self.find_type()
-        self.find_main_stat()
-        self.locate_stat_secondaires()
-        self.find_set()
-        self.find_substats()
+        type = self.type['value']
+        level = self.level['value']
+        main_stat_name = self.mainStat['value']
+        main_stat_amount = self.mainStatValue['value']
+        set_name = self.setValue['value']
+        substats = []
+
+        for sub_id,sub_dict in self.substats.items():    
+            stat_name = sub_dict['name']['value']
+            if "procs" in sub_dict:
+                nbs_procs = sub_dict['procs']['value']
+            else:
+                nbs_procs = 1
+            if self.completed_substats:
+                stat_amount = sub_dict['amount']['value'].replace('%','')
+                is_percent =  '%' in sub_dict['amount']['value']
+            else:
+                stat_amount = 0
+                is_percent = False
+            substats.append(Substat(stat_name=stat_name, stat_amount=stat_amount, nbs_procs=nbs_procs, is_percent=is_percent))
+
+
+        gear = Gear(
+            type = unidecode.unidecode(type),
+            level = level,
+            main_stat_name = main_stat_name,
+            main_stat_amount = main_stat_amount,
+            substats = substats,
+            set_name = set_name,
+            meta = {"completed_substats":self.completed_substats, "index_img":index})
         
-        
-        print(f"Hash: {hash(str(self.localisations))}")
-        
-        path_target = f"{self.folder_json}/{filename.replace('png','json')}"
-        with open(path_target,"w+") as f:
-            json.dump(self.localisations, f)
-            f.close()
-            
+        return gear._asdict()

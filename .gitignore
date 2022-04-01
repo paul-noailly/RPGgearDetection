@@ -11,3 +11,4 @@ service-account-file.json
 # data
 *.png
 *.json
+!ev_dict_fr_6star.json

@@ -1,0 +1,19 @@
+{
+  "fix": {
+    "Attaque": 32.0,
+    "PV": 164.0,
+    "D\u00e9fense": 15.0,
+    "Vitesse": 4.5,
+    "Agilit\u00e9": 5.0,
+    "Pr\u00e9cision": 5.0
+  },
+  "percent": {
+    "Attaque": 7.5,
+    "D\u00e9fense": 7.5,
+    "PV": 7.5,
+    "Taux": 6.0,
+    "D\u00e9g\u00e2ts": 7.5,
+    "Résistance": 8.0,
+    "Concentration": 8.0
+  }
+}
