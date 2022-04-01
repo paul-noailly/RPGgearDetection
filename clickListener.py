@@ -2,8 +2,6 @@ from pynput import mouse
 from PIL import ImageGrab
 import sys
 
-class MyException(Exception):pass
-
 
 class ClickListener():
     def __init__(self):
