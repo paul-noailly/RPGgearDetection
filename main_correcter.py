@@ -23,7 +23,7 @@ gear_paths = [f'{folder_result}/{filename}' for filename in os.listdir(folder_re
 incompleted_paths = [gear_path for gear_path in gear_paths if not json.load(open(gear_path, 'r'))['meta']['completed_substats']]
 log(f"Incomplete gears: {len(incompleted_paths)}/{len(gear_paths)}")
 
-for gear_path in gear_paths:
+for index_correction,gear_path in enumerate(incompleted_paths):
     
     with open(gear_path, 'r') as f:
         dict_gear = json.load(f)
@@ -31,7 +31,7 @@ for gear_path in gear_paths:
         
     if not dict_gear['meta']['completed_substats']:
         print('...')
-        log(f'Correcting {gear_path}')
+        log(f'Correcting {gear_path} - correction {index_correction}/{len(incompleted_paths)}')
         skip_this_correction = False
         stop_all_corrections = False
         while not skip_this_correction and not stop_all_corrections:
