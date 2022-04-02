@@ -42,6 +42,11 @@ class Gear():
         self.ev = self.get_ev()
         self.total_procs = sum([substat.nbs_procs for substat in self.substats])
         self.proc_quality = self.ev / self.total_procs
+        self.initial_procs = self.total_procs - self.level // 3
+        if self.initial_procs in [2,3,4]:
+            self.rarity = {2:"elite",3:"epic",4:"legendary"}[self.initial_procs]  
+        else:
+            self.rarity = "unknown"
         
         print([substat._asdict() for substat in self.substats])
         
@@ -56,6 +61,7 @@ class Gear():
         return {
             "type": self.type,
             "level": self.level,
+            "rarity": self.rarity,
             "main_stat_name": unidecode.unidecode(self.main_stat_name),
             "main_stat_amount": self.main_stat_amount,
             "set_name": unidecode.unidecode(self.set_name),
@@ -63,7 +69,8 @@ class Gear():
             "quality": {
                 "ev": self.ev,
                 "proc_quality": self.proc_quality,
-                "total_procs": self.total_procs                
+                "total_procs": self.total_procs,
+                "initial_procs": self.initial_procs           
             },
             "meta": self.meta
         }
