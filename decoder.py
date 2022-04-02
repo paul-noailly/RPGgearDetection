@@ -305,7 +305,8 @@ class Decoder():
         type = self.type['value']
         level = self.level['value']
         main_stat_name = self.mainStat['value']
-        main_stat_amount = self.mainStatValue['value']
+        main_stat_amount = float(self.mainStatValue['value'].replace('%',''))
+        main_stat_is_percent = '%' in self.mainStatValue['value']
         set_name = self.setValue['value']
         substats = []
 
@@ -316,7 +317,7 @@ class Decoder():
             else:
                 nbs_procs = 1
             if self.completed_substats:
-                stat_amount = sub_dict['amount']['value'].replace('%','')
+                stat_amount = float(sub_dict['amount']['value'].replace('%',''))
                 is_percent =  '%' in sub_dict['amount']['value']
             else:
                 stat_amount = 0
@@ -329,6 +330,7 @@ class Decoder():
             level = level,
             main_stat_name = main_stat_name,
             main_stat_amount = main_stat_amount,
+            main_stat_is_percent = main_stat_is_percent,
             substats = substats,
             set_name = set_name,
             meta = {"completed_substats":self.completed_substats, "index_img":index})

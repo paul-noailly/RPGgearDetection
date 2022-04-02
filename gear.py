@@ -30,18 +30,20 @@ class Substat():
         }
 
 class Gear():
-    def __init__(self, type, level, main_stat_name, main_stat_amount, substats, set_name, meta):
+    def __init__(self, type, level, main_stat_name, main_stat_amount, main_stat_is_percent, substats, set_name, meta):
         self.type = type
         self.level = level
         self.main_stat_name = main_stat_name
         self.main_stat_amount = main_stat_amount
+        self.main_stat_is_percent = main_stat_is_percent
         self.substats = substats
         self.set_name = set_name
         self.meta = meta
         
+        self.ev_subs = self.get_ev_subs()
         self.ev = self.get_ev()
         self.total_procs = sum([substat.nbs_procs for substat in self.substats])
-        self.proc_quality = self.ev / self.total_procs
+        self.proc_quality = self.ev_subs / self.total_procs
         self.initial_procs = self.total_procs - self.level // 3
         if self.initial_procs in [2,3,4]:
             self.rarity = {2:"elite",3:"epic",4:"legendary"}[self.initial_procs]  
@@ -50,12 +52,16 @@ class Gear():
         
         print([substat._asdict() for substat in self.substats])
         
-    def get_ev(self):
+    def get_ev_subs(self):
         ev_dict = json.load(open('data/ev_dict_fr_6star.json','r'))
         total_ev = 0
         for substat in self.substats:
             total_ev += substat.get_ev(ev_dict)
         return total_ev
+    
+    def get_ev(self):
+        ev_dict = json.load(open('data/ev_dict_fr_6star.json','r'))
+        return stat_to_ev(self.main_stat_name, self.main_stat_amount, self.main_stat_is_percent, ev_dict) + self.ev_subs
     
     def _asdict(self):
         return {
@@ -64,6 +70,7 @@ class Gear():
             "rarity": self.rarity,
             "main_stat_name": unidecode.unidecode(self.main_stat_name),
             "main_stat_amount": self.main_stat_amount,
+            "main_stat_is_percent": self.main_stat_is_percent,
             "set_name": unidecode.unidecode(self.set_name),
             "substats": [substat._asdict() for substat in self.substats],
             "quality": {
