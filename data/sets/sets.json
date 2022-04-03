@@ -1,0 +1,17 @@
+{
+  "rage": { "cc": 20 },
+  "vanguard": { "defense%": 0.15 },
+  "terra": { "hp%": 0.15 },
+  "raider": { "speed": 0.15 },
+  "avarice": {},
+  "dragonscale": {},
+  "warrior": { "atk%": 0.15 },
+  "cursed": {},
+  "revival": {},
+  "raptor": { "focus": 20 },
+  "assassin": {},
+  "faith": {},
+  "guard": {},
+  "divine": {},
+  "rebel": {}
+}

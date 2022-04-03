@@ -1,0 +1,16 @@
+{
+  "Arme": "weapon",
+  "arme": "weapon",
+  "Tête": "head",
+  "Tete": "head",
+  "tête": "head",
+  "tete": "head",
+  "Buste": "chest",
+  "buste": "chest",
+  "Pieds": "speed",
+  "pieds": "speed",
+  "Mains": "hands",
+  "mains": "hands",
+  "Cou": "neck",
+  "cou": "neck"
+}
