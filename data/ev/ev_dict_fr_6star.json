@@ -1,0 +1,19 @@
+{
+  "fix": {
+    "atk": 32.0,
+    "hp": 164.0,
+    "defense": 15.0,
+    "speed": 4.5,
+    "agi": 5.0,
+    "preci": 5.0
+  },
+  "percent": {
+    "atk": 7.5,
+    "defense": 7.5,
+    "hp": 7.5,
+    "cc": 6.0,
+    "cd": 7.5,
+    "resi": 8.0,
+    "focus": 8.0
+  }
+}
