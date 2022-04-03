@@ -96,19 +96,19 @@ class Decoder():
     _SETS = [
         'Guerrier', 
         'Fureur', 
-        'Avant-Garde', 
+        "d'Avant-Garde", 
         'Renaissance', 
         'Malédiction', 
-        'Assassin', 
+        "l'Assassin", 
         'Divin',
         'Terre', 
         'Raid', 
-        'Aigle', 
+        "d'Aigle", 
         'Foi', 
         'Draconique', 
         "l'Avarice", 
         'Garde', 
-        'Invincibilité'
+        "d'Invincibilité"
     ]
     _SUBS_NAME = "Stats"
     def __init__(self, folder_left, folder_substats):
