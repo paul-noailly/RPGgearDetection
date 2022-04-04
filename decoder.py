@@ -317,8 +317,8 @@ class Decoder():
             else:
                 nbs_procs = 1
             if self.completed_substats:
-                stat_amount = float(sub_dict['amount']['value'].replace('%',''))
-                is_percent =  '%' in sub_dict['amount']['value']
+                stat_amount = float(sub_dict['amount']['value'].replace('%','').replace('°',''))
+                is_percent =  '%' in sub_dict['amount']['value'] or "°" in sub_dict['amount']['value']
             else:
                 stat_amount = 0
                 is_percent = False
