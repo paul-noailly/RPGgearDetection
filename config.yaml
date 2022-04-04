@@ -4,3 +4,5 @@ folder_substats: "img/substats"
 sec_between_screenshot: 0.5 # > 0.5
 # Decoder
 folder_result: "result"
+# merger
+folder_result_merged: "result_merged"
