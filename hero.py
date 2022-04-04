@@ -1,7 +1,7 @@
 from typing import List
-from classes.gear import Gear, Substat
-from classes.stats import Stats, dict_to_stats
-from classes.ascends import Ascends, dict_to_ascends
+from gear import Gear, Substat
+from stats import Stats, dict_to_stats
+from ascends import Ascends, dict_to_ascends
 import json
         
 def dict_to_hero(dic:dict):

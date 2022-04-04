@@ -1,5 +1,5 @@
-from classes.translator import Translator
-from classes.gear import Gear, get_all_gears
+from translator import Translator
+from gear import Gear, get_all_gears
 
 
 class FilteredGears():

@@ -1,5 +1,5 @@
 from unittest import case
-from classes.gear import Gear, Substat
+from gear import Gear, Substat
 import json
 
 def dict_to_stats(dic:dict):

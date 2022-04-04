@@ -1,6 +1,6 @@
 import json, os
 import unidecode
-from classes.translator import Translator
+from translator import Translator
 
 def stat_to_ev(name, value, is_percent, translator, ev_dict):
     try:
