@@ -305,8 +305,8 @@ class Decoder():
         type = self.type['value']
         level = self.level['value']
         main_stat_name = self.mainStat['value']
-        main_stat_amount = float(self.mainStatValue['value'].replace('%','').replace('°',''))
-        main_stat_is_percent = '%' in self.mainStatValue['value'] or "°" in self.mainStatValue['value']
+        main_stat_amount = float(self.mainStatValue['value'].replace('%','').replace('°','').replace(',','').replace(' ',''))
+        main_stat_is_percent = '%' in self.mainStatValue['value'] or "°" in self.mainStatValue['value'] or "," in self.mainStatValue['value']
         set_name = self.setValue['value']
         substats = []
 
