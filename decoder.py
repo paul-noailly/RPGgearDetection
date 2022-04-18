@@ -305,8 +305,8 @@ class Decoder():
         type = self.type['value']
         level = self.level['value']
         main_stat_name = self.mainStat['value']
-        main_stat_amount = float(self.mainStatValue['value'].replace('%','').replace('°','').replace(',','').replace(' ',''))
-        main_stat_is_percent = '%' in self.mainStatValue['value'] or "°" in self.mainStatValue['value'] or "," in self.mainStatValue['value']
+        main_stat_amount = float(self.mainStatValue['value'].replace('%','').replace('°','').replace(',','').replace(' ','').replace('-',''))
+        main_stat_is_percent = '%' in self.mainStatValue['value'] or "°" in self.mainStatValue['value'] or "," in self.mainStatValue['value'] or "-" in self.mainStatValue['value']
         set_name = self.setValue['value']
         substats = []
 
@@ -317,8 +317,8 @@ class Decoder():
             else:
                 nbs_procs = 1
             if self.completed_substats:
-                stat_amount = float(sub_dict['amount']['value'].replace('%','').replace('°','').replace(',','').replace(' ',''))
-                is_percent =  '%' in sub_dict['amount']['value'] or "°" in sub_dict['amount']['value'] or "," in sub_dict['amount']['value']
+                stat_amount = float(sub_dict['amount']['value'].replace('%','').replace('°','').replace(',','').replace(' ','').replace('-',''))
+                is_percent =  '%' in sub_dict['amount']['value'] or "°" in sub_dict['amount']['value'] or "," in sub_dict['amount']['value'] or "-" in sub_dict['amount']['value']
             else:
                 stat_amount = 0
                 is_percent = False
