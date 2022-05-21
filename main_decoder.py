@@ -8,18 +8,17 @@ def log(msg):
 config = yaml.safe_load(open("config.yaml","r"))
 folder_left, folder_substats = config['folder_left'], config['folder_substats']
 folder_result = config['folder_result']
+language = config['language']
 
 # make dirs
-try:
-    os.makedirs(folder_result)
-except:
+if os.path.exists(folder_result):
     shutil.rmtree(folder_result)
-    os.makedirs(folder_result)
+os.makedirs(folder_result)
   
 
 if __name__ == '__main__':
     from decoder import Decoder
-    bot = Decoder(folder_left, folder_substats)  
+    bot = Decoder(folder_left, folder_substats, language)
     indices = [int(filename.replace('.png','')) for filename in os.listdir(folder_left) if ".png" in filename]
     log(f"Preparing {len(indices)} images to decode...")
     indices_to_correct = []

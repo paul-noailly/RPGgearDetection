@@ -43,7 +43,7 @@ class ClickListener():
             try:
                 listener.join()
             except Exception as e:
-                pass
+                print(str(e))
         print(self.clicks_substats)
             
     def register_subspace_left(self):
@@ -52,6 +52,5 @@ class ClickListener():
             try:
                 listener.join()
             except Exception as e:
-                pass
+                print(str(e))
         print(self.clicks_left)
-            

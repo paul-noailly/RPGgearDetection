@@ -28,5 +28,22 @@
   "precision": "preci",
   "Precision": "preci",
   "Précision": "preci",
-  "précision": "preci"
+  "précision": "preci",
+
+  "Attack": "atk",
+  "attack": "atk",
+  "Health": "hp",
+  "health": "hp",
+  "Speed": "speed",
+  "speed": "speed",
+  "Crit. Rate": "cc",
+  "Crit. rate": "cc",
+  "crit. rate": "cc",
+  "Crit. Damage": "cd",
+  "Crit. damage": "cd",
+  "crit. damage": "cd",
+  "Focus": "focus",
+  "focus": "focus",
+  "Agility": "agi",
+  "agility": "agi"
 }
