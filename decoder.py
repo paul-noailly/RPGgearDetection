@@ -7,6 +7,12 @@ class InvalidGearException(Exception):
 class MissmatchSubstatsException(Exception):
     pass
 
+def mergeVertices(source, extension):
+    source.bounding_poly.vertices[1].x = extension.bounding_poly.vertices[1].x
+    source.bounding_poly.vertices[2].x = extension.bounding_poly.vertices[2].x
+    source.bounding_poly.vertices[2].y = extension.bounding_poly.vertices[2].y
+    source.bounding_poly.vertices[3].y = extension.bounding_poly.vertices[3].y
+
 class OCR():
     def __init__(self) -> None:
         pass
@@ -23,24 +29,56 @@ class OCR():
         image = vision.Image(content=content)
 
         response = client.text_detection(image=image)
-        self.texts = response.text_annotations
-        #print('self.texts:')
+        texts = response.text_annotations
+        #print('texts:')
 
-        for text in self.texts:
-            #print('\n"{}"'.format(text.description))
+        # for text in texts:
+        #    #print('\n"{}"'.format(text.description))
 
-            vertices = (['({},{})'.format(vertex.x, vertex.y)
-                        for vertex in text.bounding_poly.vertices])
+        #    vertices = (['({},{})'.format(vertex.x, vertex.y)
+        #                for vertex in text.bounding_poly.vertices])
 
-            #print('bounds: {}'.format(','.join(vertices)))
+        #    #print('bounds: {}'.format(','.join(vertices)))
 
+        # Rework the text returned from the text_detection() function to help the extraction
+        values = [ texts[0] ]
+        passNb = 0
+        for ind, text in enumerate(texts[1:]):
+            if passNb > 0:
+                passNb -= 1
+                continue
+            if text.description == "%":
+                values[-1].description += "%"
+                mergeVertices(values[-1], text)
+            elif text.description == "Taux":
+                text.description += " de Crit."
+                mergeVertices(text, texts[ind + 4])
+                values.append(text)
+                passNb = 3
+            elif text.description == "Dégâts" or text.description == "Dégats" or \
+                 text.description == "Degâts" or text.description == "Degats":
+                text.description += " de Crit."
+                mergeVertices(text, texts[ind + 4])
+                values.append(text)
+                passNb = 3
+            elif text.description == "Crit" and (texts[0].description.find("Crit. Rate") != -1 or
+                                                 texts[0].description.find("Crit. Damage") != -1):
+                text.description += ". " + texts[ind + 3].description
+                mergeVertices(text, texts[ind + 3])
+                values.append(text)
+                passNb = 2
+            else:
+                values.append(text)
+
+        #print("texts=" + str([b.description for b in texts]))
+        #print("values=" + str([b.description for b in values]))
         if response.error.message:
             raise Exception(
                 '{}\nFor more info on error messages, check: '
                 'https://cloud.google.com/apis/design/errors'.format(
                     response.error.message))
             
-        return self.texts
+        return values
 
 def get_coords(bounding_poly):
     coords = []
@@ -73,46 +111,23 @@ def is_str_of_float(target):
 
 
 class Decoder():
-    _TYPES = [
-        "Arme",
-        "Tête",
-        "Buste",
-        "Pieds",
-        "Mains",
-        "Cou"
-    ]
-    _STATS = [
-        "Attaque",
-        "Défense",
-        "PV",
-        "Taux",
-        "Dégâts",
-        "Vitesse",
-        "Résistance",
-        "Concentration",
-        "Agilité",
-        "Précision",
-    ]
-    _SETS = [
-        'Guerrier', 
-        'Fureur', 
-        "d'Avant-Garde", 
-        'Renaissance', 
-        'Malédiction', 
-        "l'Assassin", 
-        'Divin',
-        'Terre', 
-        'Raid', 
-        "d'Aigle", 
-        'Foi', 
-        'Draconique', 
-        "l'Avarice", 
-        'Garde', 
-        "d'Invincibilité"
-    ]
     _SUBS_NAME = "Stats"
-    def __init__(self, folder_left, folder_substats):
-        self.folder_left, self.folder_substats = folder_left, folder_substats
+
+    def __init__(self, folder_left, folder_substats, language):
+        self.folder_left     = folder_left
+        self.folder_substats = folder_substats
+        self.language        = language
+
+        if self.language == "fr":
+            self.TYPES = ["Arme", "Tête", "Buste", "Pieds", "Mains", "Cou"]
+            self.STATS = ["Attaque", "Défense", "PV", "Taux de Crit.", "Dégâts de Crit.", "Vitesse", "Résistance", "Concentration", "Agilité", "Précision"]
+            self.SETS =  ["Guerrier", "Fureur", "d'Avant-Garde", "Renaissance", "Malédiction", "l'Assassin", "Divin",
+                          "Terre", "Raid", "d'Aigle", "Foi", "Draconique", "l'Avarice", "Garde", "d'Invincibilité"]
+        else: # "en"
+            self.TYPES = ["Weapon", "Head", "Chest", "Feet", "Hands", "Neck"]
+            self.STATS = ["Attack", "Health", "Defense", "Speed", "Crit. Rate", "Crit. Damage", "Focus", "Resistance", "Agility", "Precision"]
+            self.SETS =  ["Warrior", "Rage", "Vanguard", "Revival", "Cursed", "Assassin", "Divine", "Terra",
+                          "Raider", "Raptor", "Faith", "Dragonscale", "Avarice", "Guard", "Rebel"]
 
     def get_substats_amount(self, texts_substats):
         return [text.description for text in texts_substats][1:]
@@ -136,7 +151,7 @@ class Decoder():
             if i > self.level['index']:
                 center, limit_coords = get_coords(text.bounding_poly)
                 if center[1] > self.level['coords_center'][1]:
-                    is_similar_word, similar_word = match_word(text.description, Decoder._TYPES)
+                    is_similar_word, similar_word = match_word(text.description, self.TYPES)
                     if is_similar_word:
                         self.type = {
                             "raw": text.description,
@@ -153,7 +168,7 @@ class Decoder():
             if i > self.type['index']:
                 center, limit_coords = get_coords(text.bounding_poly)
                 if center[1] > self.type['coords_center'][1]:
-                    is_similar_word, similar_word = match_word(text.description, Decoder._STATS)
+                    is_similar_word, similar_word = match_word(text.description, self.STATS)
                     if is_similar_word:
                         self.mainStat = {
                             "raw": text.description,
@@ -204,17 +219,17 @@ class Decoder():
                         self.setPos = {
                             "coords_center": center,
                             "coords_limit": limit_coords,
-                            "index":i,
+                            "index": i - (1 if self.language == "en" else 0),
                         }
                         return True
         raise InvalidGearException('Error - [setPos] not found')
     
     def decode_setValue(self, texts_left):
         for i,text in enumerate(texts_left):
-            if i > self.setPos['index']:
+            if i >= self.setPos['index']:
                 center, limit_coords = get_coords(text.bounding_poly)
                 if center[1] >= self.setPos['coords_limit']['min_y'] and center[1] <= self.setPos['coords_limit']['max_y']:
-                    is_similar_word, similar_word = match_word(text.description, Decoder._SETS)
+                    is_similar_word, similar_word = match_word(text.description, self.SETS)
                     if is_similar_word:
                         self.setValue = {
                             "raw": text.description,
@@ -233,7 +248,7 @@ class Decoder():
             if i > self.subStart['index'] and i < self.setPos['index']:
                 center, limit_coords = get_coords(text.bounding_poly)
                 if center[1] >= self.subStart['coords_center'][1] and center[1] <= self.setPos['coords_center'][1]:
-                    is_similar_word, similar_word = match_word(text.description, Decoder._STATS)
+                    is_similar_word, similar_word = match_word(text.description, self.STATS)
                     if is_similar_word:
                         self.substats[len(self.substats)] = {
                             "name": {
