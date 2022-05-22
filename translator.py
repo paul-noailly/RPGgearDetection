@@ -4,19 +4,19 @@ class Translator():
     def __init__(self):
         folder_translations_data = "data/translators"
         # import type translations
-        with open(f"{folder_translations_data}/type_names.json", "r") as f:
+        with open(f"{folder_translations_data}/type_names.json", "r", encoding="utf-8") as f:
             self.translations_type_names = json.load(f)
             f.close()
         # import stat translations
-        with open(f"{folder_translations_data}/stat_names.json", "r") as f:
+        with open(f"{folder_translations_data}/stat_names.json", "r", encoding="utf-8") as f:
             self.translations_stat_names = json.load(f)
             f.close()
         # import set translations
-        with open(f"{folder_translations_data}/set_names.json", "r") as f:
+        with open(f"{folder_translations_data}/set_names.json", "r", encoding="utf-8") as f:
             self.translations_set_names = json.load(f)
             f.close()
         # import rarity translations
-        with open(f"{folder_translations_data}/rarity_names.json", "r") as f:
+        with open(f"{folder_translations_data}/rarity_names.json", "r", encoding="utf-8") as f:
             self.translations_rarity_names = json.load(f)
             f.close()
     
