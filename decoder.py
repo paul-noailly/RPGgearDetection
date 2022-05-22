@@ -30,6 +30,7 @@ class OCR():
 
         response = client.text_detection(image=image)
         texts = response.text_annotations
+        #print("texts=" + str([b.description for b in texts]))
         #print('texts:')
 
         # for text in texts:
@@ -67,6 +68,11 @@ class OCR():
                 mergeVertices(text, texts[ind + 3])
                 values.append(text)
                 passNb = 2
+            elif text.description == "[" and '+' in texts[ind + 2].description and texts[ind + 3].description == "]":
+                text.description += texts[ind + 2].description + "]"
+                mergeVertices(text, texts[ind + 3])
+                values.append(text)
+                passNb = 2
             else:
                 values.append(text)
 
@@ -80,7 +86,6 @@ class OCR():
         for key in sorted_keys:
             values.append(valuesByCenter[key])
 
-        #print("texts=" + str([b.description for b in texts]))
         #print("values=" + str([b.description for b in values]))
         if response.error.message:
             raise Exception(
