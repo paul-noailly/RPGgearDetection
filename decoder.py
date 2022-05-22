@@ -70,6 +70,16 @@ class OCR():
             else:
                 values.append(text)
 
+        # Correction of the text order defined by the center of each text rectangle
+        valuesByCenter = {}
+        for v in values[1:]:
+            valuesByCenter[((v.bounding_poly.vertices[0].y + v.bounding_poly.vertices[2].y)/2,
+                            (v.bounding_poly.vertices[0].x + v.bounding_poly.vertices[2].x)/2)] = v
+        sorted_keys = sorted(valuesByCenter)
+        values = [ values[0] ]
+        for key in sorted_keys:
+            values.append(valuesByCenter[key])
+
         #print("texts=" + str([b.description for b in texts]))
         #print("values=" + str([b.description for b in values]))
         if response.error.message:
@@ -208,7 +218,7 @@ class Decoder():
                             "value":text.description
                         }
                         return True
-        raise InvalidGearException('Error - [subStart] not found')
+        raise InvalidGearException('Error - [mainStatValue] not found')
     
     def decode_setPos(self, texts_left):
         for i,text in enumerate(texts_left):
