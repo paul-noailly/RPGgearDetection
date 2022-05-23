@@ -13,6 +13,24 @@ def mergeVertices(source, extension):
     source.bounding_poly.vertices[2].y = extension.bounding_poly.vertices[2].y
     source.bounding_poly.vertices[3].y = extension.bounding_poly.vertices[3].y
 
+# Comparator accepting an imprecision of 2px
+def vertices_compare(i1, i2):
+    return i1[0] < i2[0] if abs(i2[1] - i1[1]) <= 2 else i1[1] < i2[1]
+
+# Sort values by adding one at time
+def sort_values(d):
+    sorted_list = []
+    for key,_ in d.items():
+        ind_to_insert = 0
+        for ind, value in enumerate(sorted_list):
+            if vertices_compare(key, value) == False:
+                ind_to_insert = ind + 1
+            else:
+                break
+        sorted_list.insert(ind_to_insert, key)
+    return sorted_list
+
+
 class OCR():
     def __init__(self) -> None:
         pass
@@ -79,9 +97,9 @@ class OCR():
         # Correction of the text order defined by the center of each text rectangle
         valuesByCenter = {}
         for v in values[1:]:
-            valuesByCenter[((v.bounding_poly.vertices[0].y + v.bounding_poly.vertices[2].y)/2,
-                            (v.bounding_poly.vertices[0].x + v.bounding_poly.vertices[2].x)/2)] = v
-        sorted_keys = sorted(valuesByCenter)
+            valuesByCenter[((v.bounding_poly.vertices[0].x + v.bounding_poly.vertices[2].x)/2,
+                            (v.bounding_poly.vertices[0].y + v.bounding_poly.vertices[2].y)/2)] = v
+        sorted_keys = sort_values(valuesByCenter)
         values = [ values[0] ]
         for key in sorted_keys:
             values.append(valuesByCenter[key])
