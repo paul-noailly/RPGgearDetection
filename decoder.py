@@ -208,7 +208,7 @@ class Decoder():
                             "coords_center": center,
                             "coords_limit": limit_coords,
                             "index":i,
-                            "value":similar_word
+                            "value":similar_word.replace("Taux de Crit.", "Taux").replace("Dégâts de Crit.", "Dégâts")
                         }
                         return True
         raise InvalidGearException('Error - [mainStat] not found')
