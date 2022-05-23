@@ -154,7 +154,7 @@ class Decoder():
         if self.language == "fr":
             self.TYPES = ["Arme", "Tête", "Buste", "Pieds", "Mains", "Cou"]
             self.STATS = ["Attaque", "Défense", "PV", "Taux de Crit.", "Dégâts de Crit.", "Vitesse", "Résistance", "Concentration", "Agilité", "Précision"]
-            self.SETS =  ["Guerrier", "Fureur", "d'Avant-Garde", "Renaissance", "Malédiction", "l'Assassin", "Divin",
+            self.SETS =  ["Guerrier", "Fureur", "d'Avant-Garde", "Renaissance", "Malédiction", "d'Assassin", "Divin",
                           "Terre", "Raid", "d'Aigle", "Foi", "Draconique", "l'Avarice", "Garde", "d'Invincibilité"]
         else: # "en"
             self.TYPES = ["Weapon", "Head", "Chest", "Feet", "Hands", "Neck"]
@@ -289,7 +289,7 @@ class Decoder():
                                 "coords_center": center,
                                 "coords_limit": limit_coords,
                                 "index":i,
-                                "value":similar_word
+                                "value":similar_word.split()[0]
                             }
                         }
                     if len(self.substats) >= 4:
