@@ -167,7 +167,7 @@ class Decoder():
 
     def decode_level(self, texts_left):
         for i,text in enumerate(texts_left):
-            if i == 1 and '+' in text.description:
+            if i >= 1 and '+' in text.description:
                 center, limit_coords = get_coords(text.bounding_poly)
                 self.level = {
                     "raw": text.description,
