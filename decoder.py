@@ -302,7 +302,7 @@ class Decoder():
             if i > self.subStart['index'] and i < self.setPos['index']:
                 center, limit_coords = get_coords(text.bounding_poly)
                 if center[1] >= self.subStart['coords_center'][1] and center[1] <= self.setPos['coords_center'][1]:
-                    if '[' in text.description and ']' in text.description:
+                    if text.description.startswith("[+") and text.description.endswith("]"):
                         for substat_id, substat_dic in self.substats.items():
                             # print(text.description, center[1], substat_dic['name']['value'], substat_dic['name']['coords_limit']['min_y'], substat_dic['name']['coords_limit']['max_y'])
                             if center[1] >= substat_dic['name']['coords_limit']['min_y'] and center[1] <= substat_dic['name']['coords_limit']['max_y']:
@@ -311,7 +311,7 @@ class Decoder():
                                     "coords_center": center,
                                     "coords_limit": limit_coords,
                                     "index":i,
-                                    "value":int(text.description.replace('[','').replace(']','').replace('+','')) + 1
+                                    "value":int(text.description[2]) + 1
                                 }
                                 break
     
@@ -365,7 +365,10 @@ class Decoder():
             else:
                 nbs_procs = 1
             if self.completed_substats:
-                stat_amount = float(sub_dict['amount']['value'].replace('%','').replace('°','').replace(',','').replace(' ','').replace('-',''))
+                try:
+                    stat_amount = float(sub_dict['amount']['value'].replace('%','').replace('°','').replace(',','').replace(' ','').replace('-',''))
+                except ValueError:
+                    stat_amount = 0
                 is_percent =  '%' in sub_dict['amount']['value'] or "°" in sub_dict['amount']['value'] or "," in sub_dict['amount']['value'] or "-" in sub_dict['amount']['value']
             else:
                 stat_amount = 0
