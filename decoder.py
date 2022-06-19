@@ -144,7 +144,7 @@ def is_str_of_float(target):
 
 
 class Decoder():
-    _SUBS_NAME = "Stats"
+    _SUBS_NAME = "Stat"
 
     def __init__(self, folder_left, folder_substats, language):
         self.folder_left     = folder_left
@@ -218,7 +218,7 @@ class Decoder():
             if i > self.mainStat['index']:
                 center, limit_coords = get_coords(text.bounding_poly)
                 if center[1] > self.mainStat['coords_center'][1]:
-                    if text.description == Decoder._SUBS_NAME: # Stats
+                    if Decoder._SUBS_NAME in text.description: # Stat
                         self.subStart = {
                             "coords_center": center,
                             "coords_limit": limit_coords,
